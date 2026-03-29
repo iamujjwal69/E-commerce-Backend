@@ -3,9 +3,14 @@ require('./config/associations');
 const Category = require('./modules/product/category.model');
 const Product = require('./modules/product/product.model');
 
-async function seed() {
-  await sequelize.sync({ force: true });
-  console.log('Database cleared');
+async function seed(force = true) {
+  if (force) {
+    await sequelize.sync({ force: true });
+    console.log('Database cleared');
+  } else {
+    // If not forcing, just sync without dropping tables
+    await sequelize.sync();
+  }
 
   const electronics = await Category.create({ name: 'Electronics' });
   const clothing = await Category.create({ name: 'Clothing & Fashion' });
@@ -113,7 +118,15 @@ async function seed() {
   ]);
 
   console.log('✅ Seeded 12 products');
-  process.exit(0);
 }
 
-seed().catch(e => { console.error(e); process.exit(1); });
+module.exports = seed;
+
+if (require.main === module) {
+  seed().catch(e => { 
+    console.error(e); 
+    process.exit(1); 
+  }).then(() => {
+    process.exit(0);
+  });
+}
